@@ -12,3 +12,5 @@ Creación del proyecto con: npx create-vite frontend
 Instalación Dependencias:
 
 - Instalar Bootstrap: npm i Bootstrap
+
+Ejecución del proyecto con: **npm run dev**
