@@ -4,7 +4,9 @@ import api from "../services/api";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// Componente de formulario de registro
 const RegisterForm = () => {
+  // Estados para guardar la información ingresada por el usuario
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
@@ -12,11 +14,15 @@ const RegisterForm = () => {
   const [telefono, setTelefono] = useState("");
   const [message, setMessage] = useState("");
 
+  // Hook de React Router para redirigir a otra ruta
   const navigate = useNavigate(); // ✅ inicializar useNavigate
 
+  // Función que maneja el envío del formulario
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault(); // Evita recargar la página al enviar el form
+
     try {
+      // Se hace petición POST al backend con los datos del formulario
       const res = await api.post("/auth/register", {
         nombre,
         apellido,
@@ -25,6 +31,7 @@ const RegisterForm = () => {
         telefono,
       });
 
+      // Muestra mensaje de éxito recibido del backend o uno genérico
       setMessage(res.data.message || "✅ Registro exitoso");
 
       // Redirigir después de 1.5 segundos para que el usuario vea el mensaje
@@ -32,14 +39,17 @@ const RegisterForm = () => {
         navigate("/login");
       }, 1500);
     } catch (error: unknown) {
+      // Si el backend devuelve un mensaje, se muestra; si no, se muestra genérico
       if (axios.isAxiosError(error)) {
         setMessage(error.response?.data?.message || "Error en el registro");
       } else {
+        // Si no es error de Axios, muestra error desconocido
         setMessage("Error desconocido");
       }
     }
   };
 
+  // Retorno del JSX: estructura visual del formulario
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
       <div className="card p-4 shadow" style={{ width: "400px" }}>
@@ -131,4 +141,5 @@ const RegisterForm = () => {
   );
 };
 
+// Exporta el componente para usarlo en otras partes de la app
 export default RegisterForm;
