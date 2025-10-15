@@ -2,27 +2,23 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import api from "../services/api";
 import axios from "axios";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import "../App.css";
 
-// Componente de formulario de registro
 const RegisterForm = () => {
-  // Estados para guardar la información ingresada por el usuario
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [telefono, setTelefono] = useState("");
-  const [message, setMessage] = useState("");
 
-  // Hook de React Router para redirigir a otra ruta
-  const navigate = useNavigate(); // ✅ inicializar useNavigate
+  const navigate = useNavigate();
 
-  // Función que maneja el envío del formulario
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Evita recargar la página al enviar el form
+    e.preventDefault();
 
     try {
-      // Se hace petición POST al backend con los datos del formulario
       const res = await api.post("/auth/register", {
         nombre,
         apellido,
@@ -31,36 +27,50 @@ const RegisterForm = () => {
         telefono,
       });
 
-      // Muestra mensaje de éxito recibido del backend o uno genérico
-      setMessage(res.data.message || "✅ Registro exitoso");
+      toast.success(res.data.message || "Registro exitoso", {
+        position: "top-right",
+        autoClose: 3000,
+      });
 
-      // Redirigir después de 1.5 segundos para que el usuario vea el mensaje
       setTimeout(() => {
-        navigate("/login");
-      }, 1500);
+        navigate("/");
+      }, 1200);
     } catch (error: unknown) {
-      // Si el backend devuelve un mensaje, se muestra; si no, se muestra genérico
       if (axios.isAxiosError(error)) {
-        setMessage(error.response?.data?.message || "Error en el registro");
+        toast.error(error.response?.data?.message || "Error en el registro", {
+          position: "top-right",
+          autoClose: 3000, // Tiempo en milisegundos para mostrar la notificación 3 seg
+        });
       } else {
-        // Si no es error de Axios, muestra error desconocido
-        setMessage("Error desconocido");
+        toast.error("Error desconocido", {
+          position: "top-right",
+          autoClose: 3000,
+        });
       }
     }
   };
 
-  // Retorno del JSX: estructura visual del formulario
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <div className="card p-4 shadow" style={{ width: "400px" }}>
-        <h3 className="text-center mb-4">Registro</h3>
+    <div className="register-background d-flex justify-content-center align-items-center vh-100 bg-light">
+      <div
+        className="card shadow p-4"
+        style={{ width: "380px", borderRadius: "15px" }}
+      >
+        {/* Icono superior */}
+        <div className="text-center mb-3">
+          <i className="bi bi-person-circle fs-1 text-success"></i>
+        </div>
+
+        {/* Título */}
+        <h3 className="text-center mb-4 fw-bold">Crear una Cuenta</h3>
+
+        {/* Formulario */}
         <form onSubmit={handleSubmit}>
-          {/* Nombre */}
-          <div className="mb-3">
-            <label className="form-label">Nombre</label>
+          <div className="mb-3 position-relative">
+            <i className="bi bi-person position-absolute top-50 translate-middle-y ms-3 text-secondary"></i>
             <input
               type="text"
-              className="form-control"
+              className="form-control ps-5"
               placeholder="Tu nombre"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
@@ -68,12 +78,11 @@ const RegisterForm = () => {
             />
           </div>
 
-          {/* Apellido */}
-          <div className="mb-3">
-            <label className="form-label">Apellido</label>
+          <div className="mb-3 position-relative">
+            <i className="bi bi-person-lines-fill position-absolute top-50 translate-middle-y ms-3 text-secondary"></i>
             <input
               type="text"
-              className="form-control"
+              className="form-control ps-5"
               placeholder="Tu apellido"
               value={apellido}
               onChange={(e) => setApellido(e.target.value)}
@@ -81,12 +90,11 @@ const RegisterForm = () => {
             />
           </div>
 
-          {/* Correo */}
-          <div className="mb-3">
-            <label className="form-label">Correo electrónico</label>
+          <div className="mb-3 position-relative">
+            <i className="bi bi-envelope position-absolute top-50 translate-middle-y ms-3 text-secondary"></i>
             <input
               type="email"
-              className="form-control"
+              className="form-control ps-5"
               placeholder="Correo electrónico"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -94,12 +102,11 @@ const RegisterForm = () => {
             />
           </div>
 
-          {/* Contraseña */}
-          <div className="mb-3">
-            <label className="form-label">Contraseña</label>
+          <div className="mb-3 position-relative">
+            <i className="bi bi-lock position-absolute top-50 translate-middle-y ms-3 text-secondary"></i>
             <input
               type="password"
-              className="form-control"
+              className="form-control ps-5"
               placeholder="Contraseña"
               value={contrasena}
               onChange={(e) => setContrasena(e.target.value)}
@@ -107,12 +114,11 @@ const RegisterForm = () => {
             />
           </div>
 
-          {/* Teléfono */}
-          <div className="mb-3">
-            <label className="form-label">Teléfono</label>
+          <div className="mb-4 position-relative">
+            <i className="bi bi-telephone position-absolute top-50 translate-middle-y ms-3 text-secondary"></i>
             <input
               type="text"
-              className="form-control"
+              className="form-control ps-5"
               placeholder="Número de teléfono"
               value={telefono}
               onChange={(e) => setTelefono(e.target.value)}
@@ -121,25 +127,26 @@ const RegisterForm = () => {
           </div>
 
           {/* Botón */}
-          <button type="submit" className="btn btn-success w-100">
-            Registrarse
-          </button>
-        </form>
-
-        {/* Mensaje */}
-        {message && (
-          <div
-            className={`alert mt-3 text-center ${
-              message.startsWith("✅") ? "alert-success" : "alert-danger"
-            }`}
-          >
-            {message}
+          <div className="d-flex justify-content-center mb-4">
+            <button type="submit" className="btn btn-success w-50">
+              Registrarse
+            </button>
           </div>
-        )}
+
+          {/* Enlace inferior */}
+          <p className="text-center">
+            ¿Ya tienes una cuenta?{" "}
+            <a
+              href="/"
+              className="text-decoration-none fw-semibold text-primary"
+            >
+              Inicia sesión
+            </a>
+          </p>
+        </form>
       </div>
     </div>
   );
 };
 
-// Exporta el componente para usarlo en otras partes de la app
 export default RegisterForm;

@@ -1,1 +1,28 @@
+body, html, #root {
+  margin: 0;
+  height: 100%;
+}
 
+
+.register-background,
+.login-background {
+  background-image: url("/Fondo_Inicial.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  width: 100%;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.navbar-top {
+    z-index: 10; /* Un valor alto para asegurar que esté encima de todo */
+}
+
+input.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
