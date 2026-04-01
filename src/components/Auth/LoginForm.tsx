@@ -7,6 +7,7 @@ import "../../App.css";
 import { getRecaptchaToken, isRecaptchaEnabled } from "../../config/recaptcha";
 import { useAuth } from "../../context/useAuth";
 import api from "../../services/api";
+import { sanitizeInternalRedirect } from "../../utils/navigation";
 import GoogleButton from "./GoogleButton";
 
 const LoginForm = () => {
@@ -16,8 +17,10 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
-  const redirectTo =
-    new URLSearchParams(location.search).get("redirect") || "/admin";
+  const redirectTo = sanitizeInternalRedirect(
+    new URLSearchParams(location.search).get("redirect"),
+    "/admin"
+  );
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -51,12 +54,12 @@ const LoginForm = () => {
         ? await getRecaptchaToken("login")
         : null;
 
-      const res = await api.post("/auth/login", {
+      await api.post("/auth/login", {
         email,
         contrasena,
         captchaToken,
       });
-      login(res.data.token);
+      await login();
 
       toast.success("Inicio de sesión exitoso");
       setTimeout(() => navigate(redirectTo, { replace: true }), 800);
