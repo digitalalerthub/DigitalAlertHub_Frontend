@@ -317,8 +317,9 @@ const AlertDetailModal = ({
       if (editingCommentId === commentId) {
         cancelEditComment();
       }
+      toast.success("Comentario eliminado correctamente");
     } catch {
-      // No bloqueamos UI por errores de red.
+      toast.error("No se pudo eliminar el comentario");
     } finally {
       setDeletingCommentId(null);
     }

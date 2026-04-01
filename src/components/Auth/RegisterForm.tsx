@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import "../../App.css";
 import { getRecaptchaToken, isRecaptchaEnabled } from "../../config/recaptcha";
 import api from "../../services/api";
+import { sanitizeInternalRedirect } from "../../utils/navigation";
 import GoogleButton from "./GoogleButton";
 
 const NAME_REGEX = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s'-]{2,100}$/;
@@ -22,7 +23,10 @@ const RegisterForm = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = new URLSearchParams(location.search).get("redirect");
+  const redirectTo = sanitizeInternalRedirect(
+    new URLSearchParams(location.search).get("redirect"),
+    ""
+  );
   const loginUrl = redirectTo
     ? `/login?redirect=${encodeURIComponent(redirectTo)}`
     : "/login";

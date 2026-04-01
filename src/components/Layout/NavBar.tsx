@@ -59,10 +59,10 @@ const NavBar: React.FC = () => {
     navigate(path);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     closeMobileMenu();
     closeDesktopMenu();
-    logout();
+    await logout();
     navigate("/");
   };
 

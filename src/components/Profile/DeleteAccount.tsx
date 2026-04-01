@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../context/useAuth';
 import { deleteAccount } from '../../services/profileService';
 
 export default function DeleteAccount() {
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const { logout } = useAuth();
 
     const handleDelete = async () => {
         try {
@@ -18,8 +20,7 @@ export default function DeleteAccount() {
                     autoClose: 2000,
                 });
 
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
+                await logout();
 
                 setTimeout(() => {
                     navigate('/login');
