@@ -6,8 +6,8 @@ export default function ChangePasswordPage() {
     const navigate = useNavigate();
     const { logout } = useAuth();
 
-    const handleSuccess = () => {
-        logout();
+    const handleSuccess = async () => {
+        await logout();
         navigate('/login');
     };
 

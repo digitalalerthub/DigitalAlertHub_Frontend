@@ -1,21 +1,41 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/useAuth';
+import api from '../../services/api';
 
 function Callback() {
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const { isLoggedIn, isLoading, login } = useAuth();
+    const [handledExchange, setHandledExchange] = useState(false);
+    const code = searchParams.get('code');
 
     useEffect(() => {
-        const token = searchParams.get('token');
-
-        if (token) {
-            localStorage.setItem('token', token);
-            navigate('/admin', { replace: true });
+        if (!code) {
+            navigate('/', { replace: true });
             return;
         }
 
-        navigate('/', { replace: true });
-    }, [navigate, searchParams]);
+        if (handledExchange) return;
+
+        const exchangeCode = async () => {
+            try {
+                await api.post('/auth/google/exchange', { code });
+                await login();
+                setHandledExchange(true);
+            } catch {
+                navigate('/', { replace: true });
+            }
+        };
+
+        void exchangeCode();
+    }, [code, handledExchange, login, navigate]);
+
+    useEffect(() => {
+        if (!handledExchange || isLoading) return;
+
+        navigate(isLoggedIn ? '/admin' : '/', { replace: true });
+    }, [handledExchange, isLoading, isLoggedIn, navigate]);
 
     return (
         <div

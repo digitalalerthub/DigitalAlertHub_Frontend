@@ -8,8 +8,10 @@ export interface JWTPayload {
     email: string;
     rol: number;
     role_name?: CanonicalRoleName | null;
-    exp: number;
+    exp?: number;
 }
+
+export type AuthUser = JWTPayload;
 
 export interface AuthContextType {
     isLoggedIn: boolean;
@@ -17,8 +19,8 @@ export interface AuthContextType {
     user: JWTPayload | null;
     isAdmin: boolean;
     token: string | null;
-    login: (token: string) => void;
-    logout: () => void;
+    login: () => Promise<void>;
+    logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(

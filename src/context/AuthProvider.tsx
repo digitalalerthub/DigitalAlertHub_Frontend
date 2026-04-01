@@ -1,62 +1,67 @@
-// Controla el manejo global de autenticación
-
-import { useState, useEffect, type ReactNode } from 'react';
-import { jwtDecode } from 'jwt-decode';
+import { useEffect, useState, type ReactNode } from 'react';
+import api from '../services/api';
 import { AuthContext } from './AuthContext';
-import type { JWTPayload } from './AuthContext';
+import type { AuthUser } from './AuthContext';
 import { getCanonicalRoleName, isAdminRole } from '../utils/roles';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<JWTPayload | null>(null);
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const decodeToken = (rawToken: string): JWTPayload => {
-        const decoded = jwtDecode<JWTPayload>(rawToken);
+    const normalizeUser = (rawUser: unknown): AuthUser | null => {
+        if (!rawUser || typeof rawUser !== 'object') return null;
+
+        const candidate = rawUser as Record<string, unknown>;
+        const id = Number(candidate.id);
+        const rol = Number(candidate.rol);
+        const email =
+            typeof candidate.email === 'string' ? candidate.email.trim() : '';
+        const roleName = getCanonicalRoleName(candidate.role_name);
+
+        if (!Number.isInteger(id) || id <= 0) return null;
+        if (!Number.isInteger(rol) || rol <= 0) return null;
+        if (!email) return null;
 
         return {
-            ...decoded,
-            role_name: getCanonicalRoleName(decoded.role_name),
+            id,
+            email,
+            rol,
+            role_name: roleName,
         };
     };
 
-    const isTokenExpired = (token: string): boolean => {
+    const syncSession = async () => {
         try {
-            const decoded = decodeToken(token);
-            const now = Math.floor(Date.now() / 1000);
-            return decoded.exp < now;
+            const response = await api.get('/auth/session');
+            setUser(normalizeUser(response.data?.user));
+            setToken(null);
         } catch {
-            return true;
+            setUser(null);
+            setToken(null);
         }
     };
 
     useEffect(() => {
-        const savedToken = localStorage.getItem('token');
+        const bootstrapSession = async () => {
+            await syncSession();
+            setIsLoading(false);
+        };
 
-        if (savedToken && !isTokenExpired(savedToken)) {
-            try {
-                const decoded = decodeToken(savedToken);
-                setUser(decoded);
-                setToken(savedToken);
-            } catch {
-                localStorage.removeItem('token');
-            }
-        } else {
-            localStorage.removeItem('token');
-        }
-
-        setIsLoading(false);
+        void bootstrapSession();
     }, []);
 
-    const login = (newToken: string) => {
-        localStorage.setItem('token', newToken);
-        const decoded = decodeToken(newToken);
-        setUser(decoded);
-        setToken(newToken);
+    const login = async () => {
+        await syncSession();
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
+    const logout = async () => {
+        try {
+            await api.post('/auth/logout');
+        } catch {
+            // Limpiamos el estado local incluso si la limpieza remota falla.
+        }
+
         setUser(null);
         setToken(null);
     };
