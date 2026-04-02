@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../../services/api";
 import { toast } from "react-toastify";
+import { getRecaptchaToken, isRecaptchaEnabled } from "../../config/recaptcha";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -12,7 +13,10 @@ const ForgotPasswordPage = () => {
     setIsLoading(true); // Cargando en el botón Enviar
 
     try {
-      await api.post("/auth/forgot-password", { email });
+      const captchaToken = isRecaptchaEnabled
+        ? await getRecaptchaToken("forgot_password")
+        : null;
+      await api.post("/auth/forgot-password", { email, captchaToken });
       setEmailSent(true);
       toast.success("Te enviamos un enlace para restablecer tu contraseña.");
     } catch {
