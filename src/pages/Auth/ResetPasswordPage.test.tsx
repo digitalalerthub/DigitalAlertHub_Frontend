@@ -3,14 +3,22 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import api from '../../services/api';
+import { getRecaptchaToken } from '../../config/recaptcha';
+import { toast } from 'react-toastify';
 import ResetPasswordPage from './ResetPasswordPage';
 
 const mockedNavigate = vi.fn();
 
 vi.mock('../../services/api', () => ({
     default: {
+        get: vi.fn(),
         post: vi.fn(),
     },
+}));
+
+vi.mock('../../config/recaptcha', () => ({
+    getRecaptchaToken: vi.fn(),
+    isRecaptchaEnabled: true,
 }));
 
 vi.mock('react-toastify', () => ({
@@ -46,6 +54,8 @@ const renderResetPasswordPage = (initialEntry: string) =>
 describe('ResetPasswordPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(api.get).mockResolvedValue({ data: { message: 'Token valido' } });
+        vi.mocked(getRecaptchaToken).mockResolvedValue('captcha-token');
     });
 
     it('muestra errores y no envia si la contrasena es invalida', async () => {
@@ -53,6 +63,7 @@ describe('ResetPasswordPage', () => {
 
         renderResetPasswordPage('/reset-password/token123?mode=activation');
 
+        await screen.findByPlaceholderText('Nueva Contrasena');
         await user.type(
             screen.getByPlaceholderText('Nueva Contrasena'),
             '12345678',
@@ -79,6 +90,7 @@ describe('ResetPasswordPage', () => {
 
         renderResetPasswordPage('/reset-password/token123');
 
+        await screen.findByPlaceholderText('Nueva Contrasena');
         await user.type(
             screen.getByPlaceholderText('Nueva Contrasena'),
             'Clave1234',
@@ -93,7 +105,31 @@ describe('ResetPasswordPage', () => {
 
         expect(api.post).toHaveBeenCalledWith('/auth/reset-password/token123', {
             nuevaContrasena: 'Clave1234',
+            captchaToken: 'captcha-token',
         });
         expect(mockedNavigate).toHaveBeenCalledWith('/login');
+    });
+
+    it('muestra un estado invalido cuando el token ya fue usado', async () => {
+        vi.mocked(api.get).mockRejectedValue({
+            response: {
+                data: {
+                    message:
+                        'Este enlace ya fue usado o fue reemplazado por uno mas reciente',
+                },
+            },
+            isAxiosError: true,
+        });
+
+        renderResetPasswordPage('/reset-password/token123');
+
+        await screen.findByText('Validando enlace');
+
+        await vi.waitFor(() => {
+            expect(toast.error).toHaveBeenCalledWith(
+                'Este enlace ya fue usado o fue reemplazado por uno mas reciente',
+            );
+            expect(mockedNavigate).toHaveBeenCalledWith('/login');
+        });
     });
 });

@@ -62,7 +62,12 @@ const loadRecaptchaScript = (): Promise<void> => {
 };
 
 export const getRecaptchaToken = async (
-  action: "login" | "register"
+  action:
+    | "login"
+    | "register"
+    | "forgot_password"
+    | "password_reset"
+    | "set_password"
 ): Promise<string | null> => {
   if (!isRecaptchaEnabled) {
     return null;
