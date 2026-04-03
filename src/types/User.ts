@@ -17,6 +17,7 @@ export interface CreateUserPayload {
     email: string;
     telefono?: string | null;
     id_rol: number;
+    captchaToken?: string | null;
 }
 
 // Payload para editar usuario. La contrasena se define por activacion.
