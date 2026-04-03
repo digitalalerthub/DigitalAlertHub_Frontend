@@ -4,6 +4,10 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import usersService from '../../services/users';
 import rolesService, { type Rol } from '../../services/rolesService';
+import {
+    getRecaptchaToken,
+    isRecaptchaEnabled,
+} from '../../config/recaptcha';
 import './UserModal.css';
 
 import type {
@@ -87,12 +91,17 @@ const UserModal = ({ user, onClose, onSaved }: Props) => {
                 await usersService.update(user.id_usuario, payload);
                 toast.success('Usuario actualizado correctamente');
             } else {
+                const captchaToken = isRecaptchaEnabled
+                    ? await getRecaptchaToken('admin_create_user')
+                    : null;
+
                 const payload: CreateUserPayload = {
                     nombre: form.nombre,
                     apellido: form.apellido,
                     email: form.email.trim().toLowerCase(),
                     telefono: form.telefono.trim(),
                     id_rol: Number(form.id_rol),
+                    captchaToken,
                 };
 
                 await usersService.create(payload);
