@@ -68,6 +68,7 @@ export const getRecaptchaToken = async (
     | "forgot_password"
     | "password_reset"
     | "set_password"
+    | "admin_create_user"
 ): Promise<string | null> => {
   if (!isRecaptchaEnabled) {
     return null;
