@@ -20,8 +20,12 @@ function Callback() {
 
         const exchangeCode = async () => {
             try {
-                await api.post('/auth/google/exchange', { code });
-                await login();
+                const response = await api.post('/auth/google/exchange', { code });
+                const token =
+                    typeof response.data?.token === 'string'
+                        ? response.data.token
+                        : null;
+                await login(token);
                 setHandledExchange(true);
             } catch {
                 navigate('/', { replace: true });

@@ -4,6 +4,8 @@ import { AuthContext } from './AuthContext';
 import type { AuthUser } from './AuthContext';
 import { getCanonicalRoleName, isAdminRole } from '../utils/roles';
 
+const AUTH_TOKEN_STORAGE_KEY = 'token';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [token, setToken] = useState<string | null>(null);
@@ -31,19 +33,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         };
     };
 
-    const syncSession = async () => {
+    const persistToken = (nextToken: string | null) => {
+        if (nextToken) {
+            window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, nextToken);
+        } else {
+            window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+        }
+
+        setToken(nextToken);
+    };
+
+    const syncSession = async (nextToken?: string | null) => {
+        if (nextToken !== undefined) {
+            persistToken(nextToken);
+        }
+
         try {
             const response = await api.get('/auth/session');
             setUser(normalizeUser(response.data?.user));
-            setToken(null);
         } catch {
             setUser(null);
-            setToken(null);
+            persistToken(null);
         }
     };
 
     useEffect(() => {
         const bootstrapSession = async () => {
+            const savedToken = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+            setToken(savedToken);
             await syncSession();
             setIsLoading(false);
         };
@@ -51,8 +68,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         void bootstrapSession();
     }, []);
 
-    const login = async () => {
-        await syncSession();
+    const login = async (nextToken?: string | null) => {
+        await syncSession(nextToken);
     };
 
     const logout = async () => {
@@ -63,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         setUser(null);
-        setToken(null);
+        persistToken(null);
     };
 
     return (
