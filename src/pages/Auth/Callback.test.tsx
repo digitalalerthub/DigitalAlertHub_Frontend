@@ -53,7 +53,10 @@ describe('Callback', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.mocked(api.post).mockResolvedValue({
-            data: { message: 'Sesion iniciada correctamente' },
+            data: {
+                message: 'Sesion iniciada correctamente',
+                token: 'session-token',
+            },
         });
         authState = {
             isLoggedIn: false,
@@ -76,7 +79,7 @@ describe('Callback', () => {
             });
         });
         await waitFor(() => {
-            expect(authState.login).toHaveBeenCalledTimes(1);
+            expect(authState.login).toHaveBeenCalledWith('session-token');
         });
         expect(mockedNavigate).not.toHaveBeenCalled();
 

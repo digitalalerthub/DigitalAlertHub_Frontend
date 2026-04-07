@@ -54,12 +54,14 @@ const LoginForm = () => {
         ? await getRecaptchaToken("login")
         : null;
 
-      await api.post("/auth/login", {
+      const response = await api.post("/auth/login", {
         email,
         contrasena,
         captchaToken,
       });
-      await login();
+      const token =
+        typeof response.data?.token === "string" ? response.data.token : null;
+      await login(token);
 
       toast.success("Inicio de sesión exitoso");
       setTimeout(() => navigate(redirectTo, { replace: true }), 800);

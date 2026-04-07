@@ -19,7 +19,7 @@ export interface AuthContextType {
     user: JWTPayload | null;
     isAdmin: boolean;
     token: string | null;
-    login: () => Promise<void>;
+    login: (token?: string | null) => Promise<void>;
     logout: () => Promise<void>;
 }
 
